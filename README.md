@@ -1,23 +1,32 @@
-# LMS – Next.js Starter
+# 📚 LMS – Next.js Starter
 
-LMS minimalis dibangun dengan Next.js, React, dan TypeScript. Styling menggunakan Mantine UI + TailwindCSS.
+Starter template **Learning Management System (LMS)** minimalis yang dibangun dengan **Next.js, React, dan TypeScript**.  
+Menggunakan kombinasi **Mantine UI** + **TailwindCSS** untuk styling agar tetap fleksibel dan modern. 🚀
 
-## Tech Stack
+---
 
-Framework: Next.js, React, TypeScript  
-UI: Mantine UI, TailwindCSS  
-Auth: Next-Auth  
-Database & ORM: Prisma + PostgreSQL/SQLite  
-Form & Validasi: React-Hook-Form, Zod
+## ✨ Tech Stack
 
-## Prasyarat
+- **Framework**: [Next.js](https://nextjs.org/), [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/)  
+- **UI & Styling**: [Mantine UI](https://mantine.dev/), [TailwindCSS](https://tailwindcss.com/)  
+- **Authentication**: [NextAuth.js](https://next-auth.js.org/)  
+- **Database & ORM**: [Prisma](https://www.prisma.io/) + PostgreSQL / SQLite  
+- **Form & Validation**: [React Hook Form](https://react-hook-form.com/), [Zod](https://zod.dev/)  
 
-- Node.js ≥ 18
-- npm
+---
 
-## Instalasi & Menjalankan
+## 📦 Prasyarat
 
-```bash
-npm install
-npm run dev
-```
+Sebelum memulai, pastikan sudah menginstal:
+
+- [Node.js](https://nodejs.org/) **v18 atau lebih baru**
+- [npm](https://www.npmjs.com/)  
+
+---
+
+## ⚡️ Cara Menjalankan
+
+1. **Clone repository**
+   ```bash
+   git clone https://github.com/username/lms-nextjs-starter.git
+   cd lms-nextjs-starter
