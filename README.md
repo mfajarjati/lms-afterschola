@@ -68,15 +68,15 @@ NEXTAUTH_SECRET="ganti_dengan_secret_aman"
 
 # (opsional) Provider OAuth, Storage, Payment, dsb
 
-# GOOGLE_CLIENT_ID=""
+/GOOGLE_CLIENT_ID=""
 
-# GOOGLE_CLIENT_SECRET=""
+/GOOGLE_CLIENT_SECRET=""
 
-# SUPABASE_URL=""
+/SUPABASE_URL=""
 
-# SUPABASE_ANON_KEY=""
+/SUPABASE_ANON_KEY=""
 
-# MIDTRANS_SERVER_KEY=""
+/XENDIT_SERVER_KEY=""
 
 \`\`\`
 
