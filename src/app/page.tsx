@@ -1,103 +1,181 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useAuth } from "../hooks/useAuth";
+import { useRouter } from "next/navigation";
+import {
+  Container,
+  Title,
+  Text,
+  Button,
+  Group,
+  Stack,
+  Grid,
+  Card,
+  Badge,
+  LoadingOverlay,
+  Paper,
+} from "@mantine/core";
+import {
+  IconBook,
+  IconTrophy,
+  IconArrowRight,
+  IconBrandSteam,
+} from "@tabler/icons-react";
+
+function LandingPage() {
+  const router = useRouter();
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <Container size="xl" py={50}>
+      <Stack align="center" gap="xl">
+        <div style={{ textAlign: "center" }}>
+          <Title size="3rem" className="text-gradient" mb="md">
+            AfterSchola
+          </Title>
+          <Text size="xl" c="dimmed" mb="xl">
+            Platform pembelajaran pemrograman visual untuk anak-anak
+          </Text>
+          <Text size="lg" mb="xl">
+            Belajar Scratch dan Roblox dengan mudah dan menyenangkan!
+          </Text>
+          <Group justify="center" gap="md">
+            <Button
+              size="lg"
+              className="btn-primary"
+              rightSection={<IconArrowRight size="1.2rem" />}
+              onClick={() => router.push("/signup")}
+            >
+              Mulai Belajar Gratis
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => router.push("/login")}
+            >
+              Masuk
+            </Button>
+          </Group>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        <Grid gutter="xl" mt="xl">
+          <Grid.Col span={{ base: 12, md: 4 }}>
+            <Card padding="xl" radius="md" className="card-hover" h="100%">
+              <Stack align="center" gap="md">
+                <IconBook size="3rem" className="text-gradient" />
+                <Title order={3} ta="center">
+                  Scratch Programming
+                </Title>
+                <Text ta="center" c="dimmed">
+                  Pelajari dasar-dasar pemrograman dengan visual coding yang
+                  mudah dipahami
+                </Text>
+                <Badge variant="light" color="green">
+                  Untuk Pemula
+                </Badge>
+              </Stack>
+            </Card>
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, md: 4 }}>
+            <Card padding="xl" radius="md" className="card-hover" h="100%">
+              <Stack align="center" gap="md">
+                <IconBrandSteam size="3rem" className="text-gradient" />
+                <Title order={3} ta="center">
+                  Roblox Development
+                </Title>
+                <Text ta="center" c="dimmed">
+                  Buat game 3D yang amazing dengan Roblox Studio dan Lua
+                  scripting
+                </Text>
+                <Badge variant="light" color="blue">
+                  Game Development
+                </Badge>
+              </Stack>
+            </Card>
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, md: 4 }}>
+            <Card padding="xl" radius="md" className="card-hover" h="100%">
+              <Stack align="center" gap="md">
+                <IconTrophy size="3rem" className="text-gradient" />
+                <Title order={3} ta="center">
+                  Gamifikasi
+                </Title>
+                <Text ta="center" c="dimmed">
+                  Raih poin, level up, dan dapatkan sertifikat untuk setiap
+                  pencapaian
+                </Text>
+                <Badge variant="light" color="yellow">
+                  Reward System
+                </Badge>
+              </Stack>
+            </Card>
+          </Grid.Col>
+        </Grid>
+
+        <Paper p="xl" radius="md" mt="xl" w="100%" maw={800}>
+          <Stack align="center" gap="sm">
+            <Title order={2}>Demo Login Credentials</Title>
+            <Text ta="center">Gunakan credentials berikut untuk testing:</Text>
+            <Grid gutter="md">
+              <Grid.Col span={4}>
+                <Card p="md" radius="sm">
+                  <Stack gap="xs">
+                    <Text fw={600} c="red">
+                      Admin
+                    </Text>
+                    <Text size="sm">admin@afterschola.com</Text>
+                    <Text size="sm">password: admin123</Text>
+                  </Stack>
+                </Card>
+              </Grid.Col>
+              <Grid.Col span={4}>
+                <Card p="md" radius="sm">
+                  <Stack gap="xs">
+                    <Text fw={600} c="blue">
+                      Instruktur
+                    </Text>
+                    <Text size="sm">budi.scratch@afterschola.com</Text>
+                    <Text size="sm">password: instructor123</Text>
+                  </Stack>
+                </Card>
+              </Grid.Col>
+              <Grid.Col span={4}>
+                <Card p="md" radius="sm">
+                  <Stack gap="xs">
+                    <Text fw={600} c="green">
+                      Siswa
+                    </Text>
+                    <Text size="sm">rian.student@gmail.com</Text>
+                    <Text size="sm">password: student123</Text>
+                  </Stack>
+                </Card>
+              </Grid.Col>
+            </Grid>
+          </Stack>
+        </Paper>
+      </Stack>
+    </Container>
   );
+}
+
+function AppContent() {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return (
+      <Container size="sm" py={100}>
+        <Stack align="center" gap="md">
+          <LoadingOverlay visible />
+          <Text>Memuat...</Text>
+        </Stack>
+      </Container>
+    );
+  }
+
+  return <LandingPage />;
+}
+
+export default function HomePage() {
+  return <AppContent />;
 }

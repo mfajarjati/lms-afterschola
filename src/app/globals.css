@@ -1,26 +1,249 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;600;700&display=swap");
 @import "tailwindcss";
 
 :root {
+  /* Brand vars diupdate ke palet baru */
+  --primary-color: #1e386a; /* dark brand blue */
+  --secondary-color: #f6d457; /* yellow accent */
+  --accent-color: #4b6087; /* mid blue */
+
+  /* (opsi) kalau mau samakan "success" ke tone brand, bisa pakai biru juga */
+  --success-color: #1e3769;
+
+  --gradient-primary: linear-gradient(135deg, #1e386a 0%, #4b6087 100%);
+  --gradient-secondary: linear-gradient(135deg, #f6d457 0%, #1e3769 100%);
+  --gradient-accent: linear-gradient(
+    135deg,
+    #1e3769 0%,
+    #4b6087 50%,
+    #f6d457 100%
+  );
+
+  /* Light theme */
   --background: #ffffff;
   --foreground: #171717;
+  --card-bg: #ffffff;
+  --border-color: #e3e6ea; /* sinkron dgn gray[200] */
+  --hover-bg: #eff1f4; /* sinkron dgn gray[100] */
+
+  /* Set font utama untuk Mantine (dipakai body di bawah) */
+  --mantine-font-family: "Poppins", "Montserrat", "Caviar Dreams", system-ui,
+    -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans",
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+[data-mantine-color-scheme="dark"] {
+  --background: #1a1b1e;
+  --foreground: #c1c2c5;
+  --card-bg: #25262b;
+  --border-color: #36393d; /* gray[700] */
+  --hover-bg: #2c2e33;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--mantine-font-family);
+  line-height: 1.6;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--hover-bg);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color);
+}
+
+/* Update scrollbar for dark mode */
+[data-mantine-color-scheme="dark"] ::-webkit-scrollbar-track {
+  background: #2c2e33;
+}
+
+[data-mantine-color-scheme="dark"] ::-webkit-scrollbar-thumb {
+  background: #4a5568;
+}
+
+[data-mantine-color-scheme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+/* Custom classes */
+.gradient-primary {
+  background: var(--gradient-primary);
+}
+
+.gradient-secondary {
+  background: var(--gradient-secondary);
+}
+
+.gradient-accent {
+  background: var(--gradient-accent);
+}
+
+.text-gradient {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(9, 53, 105, 0.15);
+}
+
+.btn-primary {
+  background: var(--gradient-primary);
+  border: none;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(9, 53, 105, 0.3);
+}
+
+/* Navigation styles */
+.nav-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  color: #6b7280;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+}
+
+.nav-link:hover {
+  background-color: var(--hover-bg);
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.nav-link.active {
+  background: var(--gradient-primary);
+  color: white;
+}
+
+.nav-link.active:hover {
+  background: var(--gradient-primary);
+  color: white;
+}
+
+/* Dark mode navigation */
+[data-mantine-color-scheme="dark"] .nav-link {
+  color: #a6a7ab;
+}
+
+[data-mantine-color-scheme="dark"] .nav-link:hover {
+  background-color: var(--hover-bg);
+  color: #fff;
+}
+
+/* Animation utilities */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Theme-aware backgrounds */
+.theme-bg {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.main-content {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.stats-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode specific adjustments */
+[data-mantine-color-scheme="dark"] .stats-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+[data-mantine-color-scheme="dark"] .card-hover:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* Course card styles with theme support */
+.course-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.course-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+[data-mantine-color-scheme="dark"] .course-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-mantine-color-scheme="dark"] .course-card:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
 }
