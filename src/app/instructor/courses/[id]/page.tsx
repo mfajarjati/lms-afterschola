@@ -14,6 +14,8 @@ import {
   Button,
   Paper,
   Divider,
+  ActionIcon,
+  Tooltip,
 } from "@mantine/core";
 import Link from "next/link";
 import { getCourseById, getModulesByCourse } from "../../../../data/courses";
@@ -22,6 +24,8 @@ import {
   IconClock,
   IconUser,
   IconChevronLeft,
+  IconPlus,
+  IconPencil,
 } from "@tabler/icons-react";
 
 export default function InstructorCourseDetailPage() {
@@ -79,13 +83,33 @@ export default function InstructorCourseDetailPage() {
                     <Text size="sm">{course.enrolledCount} siswa</Text>
                   </Group>
                 </Group>
+
+                {/* Tombol Lihat Siswa */}
+                <Button
+                  mt="md"
+                  component={Link}
+                  href={`/instructor/courses/${course.id}/students`}
+                >
+                  Lihat Siswa
+                </Button>
               </Stack>
             </Card>
 
             <Card padding="lg" radius="md" mt="lg">
-              <Title order={4} mb="sm">
-                Daftar Modul
-              </Title>
+              <Group justify="space-between" mb="sm">
+                <Title order={4}>Daftar Modul</Title>
+
+                {/* Tombol Tambah Modul */}
+                <Button
+                  size="sm"
+                  leftSection={<IconPlus size="1rem" />}
+                  component={Link}
+                  href={`/instructor/courses/${course.id}/modules/new`}
+                >
+                  Tambah Modul
+                </Button>
+              </Group>
+
               <Table>
                 <Table.Thead>
                   <Table.Tr>
@@ -93,6 +117,7 @@ export default function InstructorCourseDetailPage() {
                     <Table.Th>Judul</Table.Th>
                     <Table.Th>Jenis</Table.Th>
                     <Table.Th>Durasi</Table.Th>
+                    <Table.Th>Aksi</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -109,6 +134,18 @@ export default function InstructorCourseDetailPage() {
                         <Badge variant="light">{m.type}</Badge>
                       </Table.Td>
                       <Table.Td>{m.duration} mnt</Table.Td>
+                      <Table.Td>
+                        <Tooltip label="Edit Modul">
+                          <ActionIcon
+                            variant="light"
+                            color="blue"
+                            component={Link}
+                            href={`/instructor/courses/${course.id}/modules/${m.id}/edit`}
+                          >
+                            <IconPencil size="1rem" />
+                          </ActionIcon>
+                        </Tooltip>
+                      </Table.Td>
                     </Table.Tr>
                   ))}
                 </Table.Tbody>

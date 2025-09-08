@@ -298,15 +298,6 @@ export default function InstructorDashboard() {
             <Card padding="lg" radius="md" mt="lg">
               <Group justify="space-between" mb="md">
                 <Title order={3}>Kursus Saya</Title>
-                <Button
-                  leftSection={<IconPlus size="1rem" />}
-                  className="btn-primary"
-                  size="sm"
-                  component={Link}
-                  href="/instructor/courses"
-                >
-                  Kelola Kursus
-                </Button>
               </Group>
               <Table verticalSpacing="xs">
                 <Table.Thead>
