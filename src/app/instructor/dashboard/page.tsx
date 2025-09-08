@@ -203,7 +203,7 @@ export default function InstructorDashboard() {
       <Stack gap="xl">
         <div>
           <Title order={1} mb="md">
-            Dashboard Instruktur
+            Dashboard Instruktur Demo
           </Title>
           <Text size="lg" c="dimmed">
             Selamat datang kembali, {currentInstructor.fullName}!
