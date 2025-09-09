@@ -94,6 +94,22 @@ export const dummyUsers: User[] = [
     updatedAt: new Date("2024-12-01"),
   },
 
+  {
+    id: "instructor-4",
+    email: "cahya@afterschola.com",
+    username: "cahya_instructor",
+    fullName: "Cahyaaa",
+    role: "instructor",
+    avatar: "/avatars/instructor-3.jpg",
+    phone: "+628221123445",
+    bio: "Akun demo",
+    level: 420,
+    points: 5090,
+    balance: 5000000000000000,
+    createdAt: new Date("2025-03-01"),
+    updatedAt: new Date("2025-12-01"),
+  },
+
   // Student Users
   {
     id: "user-1",
