@@ -59,7 +59,6 @@ const getNavigationItems = (role: User["role"]): NavigationItem[] => {
     case "admin":
       return [
         ...baseItems,
-
         {
           label: "Manajemen User",
           href: "/admin/users",
@@ -80,13 +79,11 @@ const getNavigationItems = (role: User["role"]): NavigationItem[] => {
           href: "/instructor/courses",
           icon: "IconBook",
         },
-
         {
           label: "Forum Diskusi",
           href: "/instructor/discussions",
           icon: "IconMessageCircle",
         },
-
         {
           label: "Penghasilan",
           href: "/instructor/earnings",
@@ -149,6 +146,9 @@ export function DashboardLayout({
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const [navOpened, setNavOpened] = useState(false);
 
+  // Navbar akan disembunyikan jika di halaman profile user
+  const hideNavbar = pathname === "/user/profile";
+
   const navigationItems = getNavigationItems(user.role);
 
   const getRoleColor = (role: User["role"]) => {
@@ -184,11 +184,15 @@ export function DashboardLayout({
 
   return (
     <AppShell
-      navbar={{
-        width: 280,
-        breakpoint: "sm",
-        collapsed: { mobile: !navOpened },
-      }}
+      navbar={
+        !hideNavbar
+          ? {
+              width: 280,
+              breakpoint: "sm",
+              collapsed: { mobile: !navOpened },
+            }
+          : undefined
+      }
       header={{ height: 70 }}
       padding="md"
     >
@@ -281,7 +285,8 @@ export function DashboardLayout({
           </Group>
         </Group>
       </AppShell.Header>
-
+      
+      {!hideNavbar && (
       <AppShell.Navbar p="md" withBorder>
         <ScrollArea>
           <Stack gap="sm">
@@ -307,6 +312,7 @@ export function DashboardLayout({
           </Stack>
         </ScrollArea>
       </AppShell.Navbar>
+      )}
 
       <AppShell.Main className="main-content">{children}</AppShell.Main>
     </AppShell>

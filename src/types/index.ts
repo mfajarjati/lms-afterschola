@@ -13,6 +13,20 @@ export interface User {
   balance: number;
   createdAt: Date;
   updatedAt: Date;
+  // Custom fields for wallet, transactions, and certificates
+  walletBalance?: number;
+  transactions?: Array<{
+    id: string;
+    description: string;
+    amount: number;
+    type: "credit" | "debit";
+  }>;
+  certificates?: Array<{
+    id: string;
+    courseTitle: string;
+    date: string;
+    url: string;
+  }>;
 }
 
 // Course Types

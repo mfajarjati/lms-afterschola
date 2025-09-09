@@ -101,7 +101,7 @@ export const dummyUsers: User[] = [
     username: "rian_coder",
     fullName: "Rian Nugraha",
     role: "user",
-    avatar: "/avatars/user-1.jpg",
+    avatar: "/avatars/abdul.jpg",
     phone: "+62815777888",
     bio: "Passionate young programmer learning Scratch and game development.",
     level: 3,
