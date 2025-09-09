@@ -53,46 +53,15 @@ const getNavigationItems = (role: User["role"]): NavigationItem[] => {
     case "admin":
       return [
         ...baseItems,
-<<<<<<< HEAD
-        {
-          label: "Manajemen User",
-          href: "/admin/users",
-          icon: "IconUsers",
-        },
-        {
-          label: "Manajemen Keuangan",
-          href: "/admin/earnings",
-          icon: "IconCoin",
-        },
-=======
         { label: "Manajemen User", href: "/admin/users", icon: "IconUsers" },
         { label: "Manajemen Keuangan", href: "/admin/earnings", icon: "IconCoin" },
->>>>>>> 2b5c6ecb7cff7251d073fc0237a8b0452c907945
       ];
     case "instructor":
       return [
         ...baseItems,
-<<<<<<< HEAD
-        {
-          label: "Kursus Saya",
-          href: "/instructor/courses",
-          icon: "IconBook",
-        },
-        {
-          label: "Forum Diskusi",
-          href: "/instructor/discussions",
-          icon: "IconMessageCircle",
-        },
-        {
-          label: "Penghasilan",
-          href: "/instructor/earnings",
-          icon: "IconCoin",
-        },
-=======
         { label: "Kursus Saya", href: "/instructor/courses", icon: "IconBook" },
         { label: "Forum Diskusi", href: "/instructor/discussions", icon: "IconMessageCircle" },
         { label: "Penghasilan", href: "/instructor/earnings", icon: "IconCoin" },
->>>>>>> 2b5c6ecb7cff7251d073fc0237a8b0452c907945
       ];
     case "user":
       return [
@@ -107,6 +76,7 @@ const getNavigationItems = (role: User["role"]): NavigationItem[] => {
   }
 };
 
+// map string keys to icon components (keys are the same strings used in getNavigationItems)
 const iconMap: Record<string, React.FC<{ size?: string | number }>> = {
   IconDashboard,
   IconBook,
@@ -124,49 +94,108 @@ const iconMap: Record<string, React.FC<{ size?: string | number }>> = {
 };
 
 export function DashboardLayout({ children, user, onLogout }: DashboardLayoutProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const [navOpened, setNavOpened] = useState(false);
 
-<<<<<<< HEAD
-  // Navbar akan disembunyikan jika di halaman profile user
-  const hideNavbar = pathname === "/user/profile";
-=======
-  // profile state sinkron dengan localStorage
-  const [fullName, setFullName] = useState(user.fullName);
-  const [username, setUsername] = useState(user.username);
-  const [avatar, setAvatar] = useState<string | null>(user.avatar || null);
+  // Local UI state (initially fallback to user prop)
+  const [avatar, setAvatar] = useState<string | null>(user?.avatar || null);
+  const [fullName, setFullName] = useState<string>(user?.fullName || "");
+  const [username, setUsername] = useState<string>(user?.username || "");
 
-  // sync dari localStorage ke Navbar
+  // Decide whether to hide navbar when on profile page of the current role
+  const hideNavbar = pathname === `/${user.role}/profile`;
+
+  // read any saved avatar/profile from localStorage (per-user key) and listen to updates
   useEffect(() => {
-    const loadProfile = () => {
-      const savedProfile = localStorage.getItem("instructorProfile");
-      const savedAvatar = localStorage.getItem("instructorAvatar");
+    if (!user || !user.id) return;
 
-      if (savedProfile) {
-        const profile = JSON.parse(savedProfile);
-        setFullName(profile.fullName || user.fullName);
-        setUsername(profile.username || user.username);
-      } else {
-        setFullName(user.fullName);
-        setUsername(user.username);
+    const perUserAvatarKey = `user-avatar-${user.id}`;
+    const perUserProfileKey = `user-profile-${user.id}`;
+
+    // legacy keys for backward compatibility (your profile page used these previously)
+    const legacyAvatarKey = user.role === "instructor" ? "instructorAvatar" : null;
+    const legacyProfileKey = user.role === "instructor" ? "instructorProfile" : null;
+
+    // get avatar: prefer per-user key, then legacy, then server value
+    const avatarFromLS =
+      localStorage.getItem(perUserAvatarKey) ||
+      (legacyAvatarKey ? localStorage.getItem(legacyAvatarKey) : null) ||
+      user.avatar ||
+      null;
+    setAvatar(avatarFromLS);
+
+    // get profile overrides
+    const profileJson =
+      localStorage.getItem(perUserProfileKey) ||
+      (legacyProfileKey ? localStorage.getItem(legacyProfileKey) : null);
+    if (profileJson) {
+      try {
+        const parsed = JSON.parse(profileJson);
+        setFullName(parsed.fullName || user.fullName || "");
+        setUsername(parsed.username || user.username || "");
+      } catch {
+        setFullName(user.fullName || "");
+        setUsername(user.username || "");
       }
+    } else {
+      setFullName(user.fullName || "");
+      setUsername(user.username || "");
+    }
 
-      if (savedAvatar) {
-        setAvatar(savedAvatar);
-      } else if (user.avatar) {
-        setAvatar(user.avatar);
+    // storage event (other tabs) -> update if relevant key changed
+    const onStorage = (e: StorageEvent) => {
+      if (!e.key) return;
+      if (
+        e.key === perUserAvatarKey ||
+        e.key === perUserProfileKey ||
+        e.key === legacyAvatarKey ||
+        e.key === legacyProfileKey
+      ) {
+        const newAvatar =
+          localStorage.getItem(perUserAvatarKey) ||
+          (legacyAvatarKey ? localStorage.getItem(legacyAvatarKey) : null) ||
+          user.avatar ||
+          null;
+        setAvatar(newAvatar);
+
+        const prof =
+          localStorage.getItem(perUserProfileKey) ||
+          (legacyProfileKey ? localStorage.getItem(legacyProfileKey) : null);
+        if (prof) {
+          try {
+            const p = JSON.parse(prof);
+            setFullName(p.fullName || user.fullName || "");
+            setUsername(p.username || user.username || "");
+          } catch {
+            setFullName(user.fullName || "");
+            setUsername(user.username || "");
+          }
+        }
       }
     };
+    window.addEventListener("storage", onStorage);
 
-    loadProfile();
-    window.addEventListener("storage", loadProfile);
+    // custom event (same-tab updates) -- nice to call from profile page after saving
+    const onCustom = (ev: Event) => {
+      // expect: new CustomEvent("user-profile-updated", { detail: { userId, avatar, profile } })
+      const custom = ev as CustomEvent;
+      const d = custom?.detail;
+      if (d?.userId === user.id) {
+        if (d.avatar !== undefined) setAvatar(d.avatar || user.avatar || null);
+        if (d.profile) {
+          setFullName(d.profile.fullName || user.fullName || "");
+          setUsername(d.profile.username || user.username || "");
+        }
+      }
+    };
+    window.addEventListener("user-profile-updated", onCustom as EventListener);
 
     return () => {
-      window.removeEventListener("storage", loadProfile);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("user-profile-updated", onCustom as EventListener);
     };
   }, [user]);
->>>>>>> 2b5c6ecb7cff7251d073fc0237a8b0452c907945
 
   const navigationItems = getNavigationItems(user.role);
 
@@ -182,7 +211,6 @@ export function DashboardLayout({ children, user, onLogout }: DashboardLayoutPro
 
   return (
     <AppShell
-<<<<<<< HEAD
       navbar={
         !hideNavbar
           ? {
@@ -192,9 +220,6 @@ export function DashboardLayout({ children, user, onLogout }: DashboardLayoutPro
             }
           : undefined
       }
-=======
-      navbar={{ width: 280, breakpoint: "sm", collapsed: { mobile: !navOpened } }}
->>>>>>> 2b5c6ecb7cff7251d073fc0237a8b0452c907945
       header={{ height: 70 }}
       padding="md"
     >
@@ -207,10 +232,7 @@ export function DashboardLayout({ children, user, onLogout }: DashboardLayoutPro
               hiddenFrom="sm"
               size="sm"
             />
-            <Link
-              href={`/${user.role}/dashboard`}
-              style={{ display: "flex", alignItems: "center" }}
-            >
+            <Link href={`/${user.role}/dashboard`} style={{ display: "flex", alignItems: "center" }}>
               <Image
                 src="/logo-text.png"
                 alt="Afterschola"
@@ -236,18 +258,13 @@ export function DashboardLayout({ children, user, onLogout }: DashboardLayoutPro
               onChange={() => toggleColorScheme()}
             />
 
-            <Menu shadow="md" width={200}>
+            <Menu shadow="md" width={220}>
               <Menu.Target>
                 <UnstyledButton>
                   <Group>
-                    <Avatar
-                      src={avatar || undefined}
-                      alt={fullName}
-                      radius="xl"
-                      size="md"
-                    >
+                    <Avatar src={avatar || undefined} alt={fullName || user.fullName} radius="xl" size="md">
                       {!avatar &&
-                        fullName
+                        (fullName || user.fullName)
                           .split(" ")
                           .map((n) => n[0])
                           .join("")
@@ -259,25 +276,17 @@ export function DashboardLayout({ children, user, onLogout }: DashboardLayoutPro
 
               <Menu.Dropdown>
                 <Menu.Label>
-                  {fullName}
+                  {fullName || user.fullName}
                   <Text size="xs" c="dimmed">
-                    @{username}
+                    @{username || user.username}
                   </Text>
                 </Menu.Label>
                 <Menu.Divider />
-                <Menu.Item
-                  component={Link}
-                  href={`/${user.role}/profile`}
-                  leftSection={<IconUser size="1rem" />}
-                >
+                <Menu.Item component={Link} href={`/${user.role}/profile`} leftSection={<IconUser size="1rem" />}>
                   Profil Saya
                 </Menu.Item>
                 <Menu.Divider />
-                <Menu.Item
-                  leftSection={<IconLogout size="1rem" />}
-                  color="red"
-                  onClick={onLogout}
-                >
+                <Menu.Item leftSection={<IconLogout size="1rem" />} color="red" onClick={onLogout}>
                   Keluar
                 </Menu.Item>
               </Menu.Dropdown>
@@ -285,32 +294,32 @@ export function DashboardLayout({ children, user, onLogout }: DashboardLayoutPro
           </Group>
         </Group>
       </AppShell.Header>
-      
+
       {!hideNavbar && (
-      <AppShell.Navbar p="md" withBorder>
-        <ScrollArea>
-          <Stack gap="sm">
-            {navigationItems.map((item) => {
-              const Icon = iconMap[item.icon];
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`nav-link ${isActive ? "active" : ""}`}
-                  style={{ textDecoration: "none" }}
-                  onClick={() => setNavOpened(false)}
-                >
-                  <Group>
-                    <Icon size="1.2rem" />
-                    <Text size="sm">{item.label}</Text>
-                  </Group>
-                </Link>
-              );
-            })}
-          </Stack>
-        </ScrollArea>
-      </AppShell.Navbar>
+        <AppShell.Navbar p="md" withBorder>
+          <ScrollArea>
+            <Stack gap="sm">
+              {navigationItems.map((item) => {
+                const Icon = iconMap[item.icon] ?? (() => null);
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`nav-link ${isActive ? "active" : ""}`}
+                    style={{ textDecoration: "none" }}
+                    onClick={() => setNavOpened(false)}
+                  >
+                    <Group>
+                      <Icon size="1.2rem" />
+                      <Text size="sm">{item.label}</Text>
+                    </Group>
+                  </Link>
+                );
+              })}
+            </Stack>
+          </ScrollArea>
+        </AppShell.Navbar>
       )}
 
       <AppShell.Main className="main-content">{children}</AppShell.Main>
