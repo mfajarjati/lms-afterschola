@@ -1,42 +1,176 @@
+// Tambahkan CSS global agar efek hover bekerja
+// ...existing code...
 "use client";
 
-import { useState } from "react";
-import {
-  Container,
-  Title,
-  Text,
-  Card,
-  Stack,
-  Group,
-  Avatar,
-  TextInput,
-  Button,
-  Grid,
-  Paper,
-  Divider,
-  Badge,
-  Tabs,
-  Progress,
-} from "@mantine/core";
+import { useState, useEffect, useCallback } from "react";
+import Cropper from "react-easy-crop";
+import { Container, Title, Text, Card, Stack, Group, Avatar, TextInput, Button, Grid, Paper, Divider, Badge, Tabs, Progress, Modal } from "@mantine/core";
+// Untuk crop image ke base64
+type Crop = { x: number; y: number };
+type CroppedAreaPixels = { x: number; y: number; width: number; height: number };
+function getCroppedImg(
+  imageSrc: string,
+  crop: CroppedAreaPixels,
+  zoom: number,
+  aspect = 1
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.src = imageSrc;
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      const scale = image.naturalWidth / image.width;
+      const cropX = crop.x * scale;
+      const cropY = crop.y * scale;
+      const cropWidth = crop.width * scale;
+      const cropHeight = crop.height * scale;
+      canvas.width = cropWidth;
+      canvas.height = cropHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Canvas context is null'));
+        return;
+      }
+      ctx.drawImage(
+        image,
+        cropX,
+        cropY,
+        cropWidth,
+        cropHeight,
+        0,
+        0,
+        cropWidth,
+        cropHeight
+      );
+      resolve(canvas.toDataURL('image/jpeg'));
+    };
+    image.onerror = reject;
+  });
+}
 import { useAuth } from "../../../hooks/useAuth";
-import {
-  IconUser,
-  IconMail,
-  IconPhone,
-  IconTrophy,
-  IconReceipt2,
-} from "@tabler/icons-react";
+import { dummyCourses } from "../../../data/courses";
+import { IconUser, IconMail, IconPhone, IconTrophy, IconReceipt2, IconCreditCard, IconCertificate, IconEye } from "@tabler/icons-react";
 import { transactionsSeed } from "../../../data/finance";
 
 export default function UserProfilePage() {
+  // === PENANDA: Bagian Edit Profile User Mulai ===
   const { user } = useAuth();
-  const [fullName, setFullName] = useState(user?.fullName || "");
-  const [username, setUsername] = useState(user?.username || "");
-  const [email, setEmail] = useState(user?.email || "");
-  const [phone, setPhone] = useState(user?.phone || "");
-  const [bio, setBio] = useState(user?.bio || "");
+  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [bio, setBio] = useState("");
+  const [avatar, setAvatar] = useState("");
+
+  useEffect(() => {
+    const savedProfile = localStorage.getItem("userProfile");
+    const savedAvatar = localStorage.getItem("userAvatar");
+
+    if (savedProfile) {
+      const profile = JSON.parse(savedProfile);
+      setFullName(profile.fullName || "");
+      setUsername(profile.username || "");
+      setEmail(profile.email || "");
+      setPhone(profile.phone || "");
+      setBio(profile.bio || "");
+    } else if (user) {
+      setFullName(user.fullName || "");
+      setUsername(user.username || "");
+      setEmail(user.email || "");
+      setPhone(user.phone || "");
+      setBio(user.bio || "");
+    }
+
+    if (savedAvatar) {
+      setAvatar(savedAvatar);
+    } else if (user?.avatar) {
+      setAvatar(user.avatar);
+    }
+  }, [user]);
+
+  // === Avatar Crop State ===
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [rawImage, setRawImage] = useState<string | null>(null);
+  const [crop, setCrop] = useState<Crop>({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState<number>(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<CroppedAreaPixels | null>(null);
+
+  // upload avatar -> buka crop modal
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setRawImage(reader.result as string);
+        setCropModalOpen(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: CroppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleCropSave = async () => {
+    if (!rawImage || !croppedAreaPixels) return;
+    // Crop image
+    const croppedImg = await getCroppedImg(rawImage, croppedAreaPixels, zoom);
+    setAvatar(croppedImg as string);
+    localStorage.setItem("userAvatar", croppedImg as string);
+    setCropModalOpen(false);
+    setRawImage(null);
+  };
+
+  const handleSave = () => {
+    const profile = { fullName, username, email, phone, bio };
+    localStorage.setItem("userProfile", JSON.stringify(profile));
+    if (avatar) localStorage.setItem("userAvatar", avatar);
+
+    // Simpan juga ke key per-user agar sidebar sinkron
+    if (user?.id) {
+      localStorage.setItem(`user-avatar-${user.id}`, avatar || "");
+      localStorage.setItem(`user-profile-${user.id}`, JSON.stringify(profile));
+      // Trigger custom event agar sidebar langsung update
+      window.dispatchEvent(
+        new CustomEvent("user-profile-updated", {
+          detail: { userId: user.id, avatar, profile },
+        })
+      );
+    }
+    alert("Profil berhasil disimpan ke lokal!");
+  };
+
+  const handleReset = () => {
+    if (user) {
+      setFullName(user.fullName || "");
+      setUsername(user.username || "");
+      setEmail(user.email || "");
+      setPhone(user.phone || "");
+      setBio(user.bio || "");
+      setAvatar(user.avatar || "");
+    }
+  };
+  // === PENANDA: Bagian Edit Profile User Selesai ===
+
+  // State untuk efek hover gambar sertifikat
+  const [hoveredCert, setHoveredCert] = useState<string | null>(null);
+
+
+  // State untuk modal sertifikat
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalImg, setModalImg] = useState<string | null>(null);
 
   if (!user) return null;
+
+  // Ambil course yang selesai (simulasi: index === 0 dianggap selesai)
+  const completedCourses = dummyCourses.slice(0, 1); // ganti logika sesuai data asli jika perlu
+  const certificates = completedCourses.map((course) => ({
+    id: course.id,
+    courseTitle: course.title,
+    date: course.updatedAt?.toISOString?.() || new Date().toISOString(),
+    url: "/Sertif1.png",
+  }));
 
   const level = 7;
   const currentXP = 1280;
@@ -57,6 +191,14 @@ export default function UserProfilePage() {
     <Container size="xl">
       <Stack gap="lg">
         <div>
+          <Button
+            variant="outline"
+            component="a"
+            href="/user/dashboard"
+            mb="md"
+          >
+            Kembali ke Dashboard
+          </Button>
           <Title order={2}>Profil Saya</Title>
           <Text c="dimmed">
             Kelola akun, lihat pencapaian dan riwayat pembelian
@@ -67,22 +209,50 @@ export default function UserProfilePage() {
           <Grid.Col span={{ base: 12, md: 4 }}>
             <Card padding="lg" radius="md" withBorder>
               <Stack align="center" gap="md">
-                <Avatar size={120} radius="xl" src={user.avatar}>
-                  {user.fullName
+                <Avatar size={120} radius="xl" src={avatar}>
+                  {fullName
                     .split(" ")
                     .map((n) => n[0])
                     .join("")
                     .toUpperCase()}
                 </Avatar>
+                <Button variant="light" component="label" size="xs">
+                  Upload Foto
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={handleAvatarUpload}
+                  />
+                </Button>
+                {/* Modal Crop Avatar */}
+                <Modal opened={cropModalOpen} onClose={() => setCropModalOpen(false)} title="Atur Foto Profil" centered size="lg">
+                  {rawImage && (
+                    <div style={{ position: 'relative', width: '100%', height: 300, background: '#222' }}>
+                      <Cropper
+                        image={rawImage}
+                        crop={crop}
+                        zoom={zoom}
+                        aspect={1}
+                        onCropChange={setCrop}
+                        onZoomChange={setZoom}
+                        onCropComplete={onCropComplete}
+                      />
+                    </div>
+                  )}
+                  <Group mt="md" justify="end">
+                    <Button variant="default" onClick={() => setCropModalOpen(false)}>Batal</Button>
+                    <Button onClick={handleCropSave}>Simpan</Button>
+                  </Group>
+                </Modal>
                 <Stack gap={4} align="center">
-                  <Text fw={700}>{user.fullName}</Text>
-                  <Badge color="green" variant="light">
-                    Siswa
-                  </Badge>
+                  <Text fw={700}>{fullName}</Text>
+                  <Badge color="green" variant="light">Siswa</Badge>
                 </Stack>
               </Stack>
             </Card>
           </Grid.Col>
+
           <Grid.Col span={{ base: 12, md: 8 }}>
             <Paper p="lg" radius="md" withBorder>
               <Tabs defaultValue="edit">
@@ -90,65 +260,42 @@ export default function UserProfilePage() {
                   <Tabs.Tab value="edit" leftSection={<IconUser size={16} />}>
                     Edit Profil
                   </Tabs.Tab>
-                  <Tabs.Tab
-                    value="achievements"
-                    leftSection={<IconTrophy size={16} />}
-                  >
+                  <Tabs.Tab value="achievements" leftSection={<IconTrophy size={16} />}>
                     Pencapaian
                   </Tabs.Tab>
-                  <Tabs.Tab
-                    value="purchases"
-                    leftSection={<IconReceipt2 size={16} />}
-                  >
+                  <Tabs.Tab value="purchases" leftSection={<IconReceipt2 size={16} />}>
                     Riwayat Pembelian
+                  </Tabs.Tab>
+                  <Tabs.Tab value="wallet" leftSection={<IconCreditCard size={16} />}>
+                    Dompet & Pembayaran
+                  </Tabs.Tab>
+                  <Tabs.Tab value="certificate" leftSection={<IconCertificate size={16} />}>
+                    Sertifikat
                   </Tabs.Tab>
                 </Tabs.List>
 
                 <Tabs.Panel value="edit" pt="md">
                   <Grid gutter="md">
                     <Grid.Col span={{ base: 12, sm: 6 }}>
-                      <TextInput
-                        label="Nama Lengkap"
-                        leftSection={<IconUser size={16} />}
-                        value={fullName}
-                        onChange={(e) => setFullName(e.currentTarget.value)}
-                      />
+                      <TextInput label="Nama Lengkap" leftSection={<IconUser size={16} />} value={fullName} onChange={(e) => setFullName(e.currentTarget.value)} />
                     </Grid.Col>
                     <Grid.Col span={{ base: 12, sm: 6 }}>
-                      <TextInput
-                        label="Username"
-                        value={username}
-                        onChange={(e) => setUsername(e.currentTarget.value)}
-                      />
+                      <TextInput label="Username" value={username} onChange={(e) => setUsername(e.currentTarget.value)} />
                     </Grid.Col>
                     <Grid.Col span={{ base: 12, sm: 6 }}>
-                      <TextInput
-                        label="Email"
-                        leftSection={<IconMail size={16} />}
-                        value={email}
-                        onChange={(e) => setEmail(e.currentTarget.value)}
-                      />
+                      <TextInput label="Email" leftSection={<IconMail size={16} />} value={email} onChange={(e) => setEmail(e.currentTarget.value)} />
                     </Grid.Col>
                     <Grid.Col span={{ base: 12, sm: 6 }}>
-                      <TextInput
-                        label="Telepon"
-                        leftSection={<IconPhone size={16} />}
-                        value={phone}
-                        onChange={(e) => setPhone(e.currentTarget.value)}
-                      />
+                      <TextInput label="Telepon" leftSection={<IconPhone size={16} />} value={phone} onChange={(e) => setPhone(e.currentTarget.value)} />
                     </Grid.Col>
                     <Grid.Col span={12}>
-                      <TextInput
-                        label="Bio"
-                        value={bio}
-                        onChange={(e) => setBio(e.currentTarget.value)}
-                      />
+                      <TextInput label="Bio" value={bio} onChange={(e) => setBio(e.currentTarget.value)} />
                     </Grid.Col>
                   </Grid>
                   <Divider my="md" />
                   <Group justify="end">
-                    <Button variant="light">Reset</Button>
-                    <Button className="btn-primary">Simpan Perubahan</Button>
+                    <Button variant="light" onClick={handleReset}>Reset</Button>
+                    <Button className="btn-primary" onClick={handleSave}>Simpan Perubahan</Button>
                   </Group>
                 </Tabs.Panel>
 
@@ -156,41 +303,24 @@ export default function UserProfilePage() {
                   <Stack gap="md">
                     <Group justify="space-between">
                       <div>
-                        <Text c="dimmed" size="sm">
-                          Level Saat Ini
-                        </Text>
+                        <Text c="dimmed" size="sm">Level Saat Ini</Text>
                         <Title order={3}>Level {level}</Title>
                       </div>
-                      <Badge variant="light" color="indigo">
-                        {currentXP}/{nextLevelXP} XP
-                      </Badge>
+                      <Badge variant="light" color="indigo">{currentXP}/{nextLevelXP} XP</Badge>
                     </Group>
                     <div>
                       <Group justify="space-between" mb="xs">
                         <Text size="sm">Menuju level berikutnya</Text>
-                        <Text size="sm" fw={600}>
-                          {Math.round((currentXP / nextLevelXP) * 100)}%
-                        </Text>
+                        <Text size="sm" fw={600}>{Math.round((currentXP / nextLevelXP) * 100)}%</Text>
                       </Group>
-                      <Progress
-                        value={(currentXP / nextLevelXP) * 100}
-                        color="indigo"
-                      />
+                      <Progress value={(currentXP / nextLevelXP) * 100} color="indigo" />
                     </div>
                     <Card withBorder radius="md" p="md">
-                      <Text fw={600} mb="xs">
-                        Badge & Trophy
-                      </Text>
+                      <Text fw={600} mb="xs">Badge & Trophy</Text>
                       <Group gap="xs">
-                        <Badge color="yellow" variant="light">
-                          Starter
-                        </Badge>
-                        <Badge color="green" variant="light">
-                          First Win
-                        </Badge>
-                        <Badge color="blue" variant="light">
-                          Quiz Master
-                        </Badge>
+                        <Badge color="yellow" variant="light">Starter</Badge>
+                        <Badge color="green" variant="light">First Win</Badge>
+                        <Badge color="blue" variant="light">Quiz Master</Badge>
                       </Group>
                     </Card>
                   </Stack>
@@ -201,9 +331,7 @@ export default function UserProfilePage() {
                     {latestPaid.map((t) => (
                       <Group key={t.id} justify="space-between">
                         <div>
-                          <Text fw={600} size="sm">
-                            {t.courseTitle}
-                          </Text>
+                          <Text fw={600} size="sm">{t.courseTitle}</Text>
                           <Text size="xs" c="dimmed">
                             {new Date(t.date).toLocaleString("id-ID", {
                               dateStyle: "medium",
@@ -211,15 +339,110 @@ export default function UserProfilePage() {
                             })}
                           </Text>
                         </div>
-                        <Text fw={700} size="sm" c="green">
-                          {formatCurrency(t.amount)}
-                        </Text>
+                        <Text fw={700} size="sm" c="green">{formatCurrency(t.amount)}</Text>
                       </Group>
                     ))}
                     {latestPaid.length === 0 && (
+                      <Text c="dimmed" size="sm">Belum ada pembelian</Text>
+                    )}
+                  </Stack>
+                </Tabs.Panel>
+
+                <Tabs.Panel value="wallet" pt="md">
+                  <Stack gap="md">
+                    <Group justify="space-between">
+                      <Text fw={600}>Saldo Dompet</Text>
+                      <Badge color="teal" size="lg">
+                        {formatCurrency(user.walletBalance || 0)}
+                      </Badge>
+                    </Group>
+                    <Button color="blue" variant="filled" mb={8} onClick={() => alert('Fitur top up coming soon!')}>
+                      Top Up Saldo
+                    </Button>
+                    <Divider />
+                    <Text fw={600}>Riwayat Transaksi</Text>
+                    {(user.transactions ?? []).length > 0 ? (
+                      (user.transactions ?? []).map((tx) => (
+                        <Group key={tx.id} justify="space-between">
+                          <Text size="sm">{tx.description}</Text>
+                          <Text size="sm" c={tx.type === "credit" ? "green" : "red"}>
+                            {formatCurrency(tx.amount)}
+                          </Text>
+                        </Group>
+                      ))
+                    ) : (
+                      <Text c="dimmed" size="sm">Belum ada transaksi</Text>
+                    )}
+                  </Stack>
+                </Tabs.Panel>
+
+                <Tabs.Panel value="certificate" pt="md">
+                  <Stack gap="md">
+                    <Text fw={600}>Sertifikat Kursus</Text>
+                    {certificates.length > 0 ? (
+                      certificates.map((cert) => (
+                        <Card key={cert.id} withBorder radius="md" p="md">
+                          <Text fw={600}>{cert.courseTitle}</Text>
+                          <Text size="sm" c="dimmed">
+                            Diterbitkan: {new Date(cert.date).toLocaleDateString("id-ID")}
+                          </Text>
+                          <div
+                            style={{ position: 'relative', display: 'inline-block', marginTop: 12, width: 250 }}
+                            onClick={() => {
+                              setModalImg(cert.url);
+                              setModalOpen(true);
+                            }}
+                            onMouseEnter={() => setHoveredCert(cert.id)}
+                            onMouseLeave={() => setHoveredCert(null)}
+                          >
+                            <img
+                              src={cert.url}
+                              alt="Sertifikat"
+                              style={{
+                                width: 250,
+                                borderRadius: 8,
+                                cursor: 'pointer',
+                                display: 'block',
+                                transition: 'filter 0.2s',
+                                filter: hoveredCert === cert.id ? 'brightness(0.7)' : 'none',
+                              }}
+                            />
+                            {hoveredCert === cert.id && (
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  width: '100%',
+                                  height: '100%',
+                                  borderRadius: 8,
+                                  background: 'rgba(0,0,0,0.28)',
+                                  color: '#fff',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontWeight: 600,
+                                  fontSize: 18,
+                                  pointerEvents: 'none',
+                                  zIndex: 2,
+                                }}
+                              >
+                                Pratinjau
+                              </div>
+                            )}
+                          </div>
+                        </Card>
+                      ))
+                    ) : (
                       <Text c="dimmed" size="sm">
-                        Belum ada pembelian
+                        Belum ada sertifikat
                       </Text>
+                    )}
+                    {/* Modal Sertifikat */}
+                    {modalImg && (
+                      <Modal opened={modalOpen} onClose={() => setModalOpen(false)} title="Pratinjau Sertifikat" size="xl" centered>
+                        <img src={modalImg} alt="Sertifikat" style={{ width: '100%', borderRadius: 12 }} />
+                      </Modal>
                     )}
                   </Stack>
                 </Tabs.Panel>
