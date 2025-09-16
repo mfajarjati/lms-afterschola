@@ -2,22 +2,159 @@
 // ...existing code...
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import Cropper from "react-easy-crop";
 import { Container, Title, Text, Card, Stack, Group, Avatar, TextInput, Button, Grid, Paper, Divider, Badge, Tabs, Progress, Modal } from "@mantine/core";
+// Untuk crop image ke base64
+type Crop = { x: number; y: number };
+type CroppedAreaPixels = { x: number; y: number; width: number; height: number };
+function getCroppedImg(
+  imageSrc: string,
+  crop: CroppedAreaPixels,
+  zoom: number,
+  aspect = 1
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.src = imageSrc;
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      const scale = image.naturalWidth / image.width;
+      const cropX = crop.x * scale;
+      const cropY = crop.y * scale;
+      const cropWidth = crop.width * scale;
+      const cropHeight = crop.height * scale;
+      canvas.width = cropWidth;
+      canvas.height = cropHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Canvas context is null'));
+        return;
+      }
+      ctx.drawImage(
+        image,
+        cropX,
+        cropY,
+        cropWidth,
+        cropHeight,
+        0,
+        0,
+        cropWidth,
+        cropHeight
+      );
+      resolve(canvas.toDataURL('image/jpeg'));
+    };
+    image.onerror = reject;
+  });
+}
 import { useAuth } from "../../../hooks/useAuth";
 import { dummyCourses } from "../../../data/courses";
 import { IconUser, IconMail, IconPhone, IconTrophy, IconReceipt2, IconCreditCard, IconCertificate, IconEye } from "@tabler/icons-react";
 import { transactionsSeed } from "../../../data/finance";
 
 export default function UserProfilePage() {
+  // === PENANDA: Bagian Edit Profile User Mulai ===
+  const { user } = useAuth();
+  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [bio, setBio] = useState("");
+  const [avatar, setAvatar] = useState("");
+
+  useEffect(() => {
+    const savedProfile = localStorage.getItem("userProfile");
+    const savedAvatar = localStorage.getItem("userAvatar");
+
+    if (savedProfile) {
+      const profile = JSON.parse(savedProfile);
+      setFullName(profile.fullName || "");
+      setUsername(profile.username || "");
+      setEmail(profile.email || "");
+      setPhone(profile.phone || "");
+      setBio(profile.bio || "");
+    } else if (user) {
+      setFullName(user.fullName || "");
+      setUsername(user.username || "");
+      setEmail(user.email || "");
+      setPhone(user.phone || "");
+      setBio(user.bio || "");
+    }
+
+    if (savedAvatar) {
+      setAvatar(savedAvatar);
+    } else if (user?.avatar) {
+      setAvatar(user.avatar);
+    }
+  }, [user]);
+
+  // === Avatar Crop State ===
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [rawImage, setRawImage] = useState<string | null>(null);
+  const [crop, setCrop] = useState<Crop>({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState<number>(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<CroppedAreaPixels | null>(null);
+
+  // upload avatar -> buka crop modal
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setRawImage(reader.result as string);
+        setCropModalOpen(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: CroppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleCropSave = async () => {
+    if (!rawImage || !croppedAreaPixels) return;
+    // Crop image
+    const croppedImg = await getCroppedImg(rawImage, croppedAreaPixels, zoom);
+    setAvatar(croppedImg as string);
+    localStorage.setItem("userAvatar", croppedImg as string);
+    setCropModalOpen(false);
+    setRawImage(null);
+  };
+
+  const handleSave = () => {
+    const profile = { fullName, username, email, phone, bio };
+    localStorage.setItem("userProfile", JSON.stringify(profile));
+    if (avatar) localStorage.setItem("userAvatar", avatar);
+
+    // Simpan juga ke key per-user agar sidebar sinkron
+    if (user?.id) {
+      localStorage.setItem(`user-avatar-${user.id}`, avatar || "");
+      localStorage.setItem(`user-profile-${user.id}`, JSON.stringify(profile));
+      // Trigger custom event agar sidebar langsung update
+      window.dispatchEvent(
+        new CustomEvent("user-profile-updated", {
+          detail: { userId: user.id, avatar, profile },
+        })
+      );
+    }
+    alert("Profil berhasil disimpan ke lokal!");
+  };
+
+  const handleReset = () => {
+    if (user) {
+      setFullName(user.fullName || "");
+      setUsername(user.username || "");
+      setEmail(user.email || "");
+      setPhone(user.phone || "");
+      setBio(user.bio || "");
+      setAvatar(user.avatar || "");
+    }
+  };
+  // === PENANDA: Bagian Edit Profile User Selesai ===
+
   // State untuk efek hover gambar sertifikat
   const [hoveredCert, setHoveredCert] = useState<string | null>(null);
-  const { user } = useAuth();
-  const [fullName, setFullName] = useState(user?.fullName || "");
-  const [username, setUsername] = useState(user?.username || "");
-  const [email, setEmail] = useState(user?.email || "");
-  const [phone, setPhone] = useState(user?.phone || "");
-  const [bio, setBio] = useState(user?.bio || "");
 
 
   // State untuk modal sertifikat
@@ -72,15 +209,44 @@ export default function UserProfilePage() {
           <Grid.Col span={{ base: 12, md: 4 }}>
             <Card padding="lg" radius="md" withBorder>
               <Stack align="center" gap="md">
-                <Avatar size={120} radius="xl" src={user.avatar}>
-                  {user.fullName
+                <Avatar size={120} radius="xl" src={avatar}>
+                  {fullName
                     .split(" ")
                     .map((n) => n[0])
                     .join("")
                     .toUpperCase()}
                 </Avatar>
+                <Button variant="light" component="label" size="xs">
+                  Upload Foto
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={handleAvatarUpload}
+                  />
+                </Button>
+                {/* Modal Crop Avatar */}
+                <Modal opened={cropModalOpen} onClose={() => setCropModalOpen(false)} title="Atur Foto Profil" centered size="lg">
+                  {rawImage && (
+                    <div style={{ position: 'relative', width: '100%', height: 300, background: '#222' }}>
+                      <Cropper
+                        image={rawImage}
+                        crop={crop}
+                        zoom={zoom}
+                        aspect={1}
+                        onCropChange={setCrop}
+                        onZoomChange={setZoom}
+                        onCropComplete={onCropComplete}
+                      />
+                    </div>
+                  )}
+                  <Group mt="md" justify="end">
+                    <Button variant="default" onClick={() => setCropModalOpen(false)}>Batal</Button>
+                    <Button onClick={handleCropSave}>Simpan</Button>
+                  </Group>
+                </Modal>
                 <Stack gap={4} align="center">
-                  <Text fw={700}>{user.fullName}</Text>
+                  <Text fw={700}>{fullName}</Text>
                   <Badge color="green" variant="light">Siswa</Badge>
                 </Stack>
               </Stack>
@@ -128,8 +294,8 @@ export default function UserProfilePage() {
                   </Grid>
                   <Divider my="md" />
                   <Group justify="end">
-                    <Button variant="light">Reset</Button>
-                    <Button className="btn-primary">Simpan Perubahan</Button>
+                    <Button variant="light" onClick={handleReset}>Reset</Button>
+                    <Button className="btn-primary" onClick={handleSave}>Simpan Perubahan</Button>
                   </Group>
                 </Tabs.Panel>
 

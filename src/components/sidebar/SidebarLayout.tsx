@@ -99,6 +99,7 @@ export function DashboardLayout({ children, user, onLogout }: DashboardLayoutPro
   const [navOpened, setNavOpened] = useState(false);
 
   // Local UI state (initially fallback to user prop)
+  // === PENANDA: Avatar Navbar Mulai ===
   const [avatar, setAvatar] = useState<string | null>(user?.avatar || null);
   const [fullName, setFullName] = useState<string>(user?.fullName || "");
   const [username, setUsername] = useState<string>(user?.username || "");
@@ -123,7 +124,8 @@ export function DashboardLayout({ children, user, onLogout }: DashboardLayoutPro
       (legacyAvatarKey ? localStorage.getItem(legacyAvatarKey) : null) ||
       user.avatar ||
       null;
-    setAvatar(avatarFromLS);
+  setAvatar(avatarFromLS);
+  // === PENANDA: Avatar Navbar Selesai ===
 
     // get profile overrides
     const profileJson =
@@ -262,6 +264,7 @@ export function DashboardLayout({ children, user, onLogout }: DashboardLayoutPro
               <Menu.Target>
                 <UnstyledButton>
                   <Group>
+                    {/* === PENANDA: Avatar Navbar Mulai === */}
                     <Avatar src={avatar || undefined} alt={fullName || user.fullName} radius="xl" size="md">
                       {!avatar &&
                         (fullName || user.fullName)
@@ -270,6 +273,7 @@ export function DashboardLayout({ children, user, onLogout }: DashboardLayoutPro
                           .join("")
                           .toUpperCase()}
                     </Avatar>
+                    {/* === PENANDA: Avatar Navbar Selesai === */}
                   </Group>
                 </UnstyledButton>
               </Menu.Target>
