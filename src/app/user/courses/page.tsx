@@ -28,6 +28,7 @@ import {
 } from "@tabler/icons-react";
 import { dummyCourses } from "../../../data/courses";
 import { useState } from "react";
+import Link from "next/link";
 
 // Simulate enrolled courses
 const enrolledCourses = dummyCourses.slice(0, 4);
@@ -226,26 +227,15 @@ export default function UserCoursesPage() {
                           Sertifikat
                         </Button>
                       )}
+                    <Link href={`/user/courses/${course.category === "scratch" ? "scratch" : "roblox"}`} passHref>
                       <Button
                         className="btn-primary"
                         size="sm"
                         leftSection={<IconPlayerPlayFilled size="0.8rem" />}
-                        onClick={() => {
-                          // demo resume: alternating pdf/video
-                          const type = Math.random() > 0.5 ? "pdf" : "video";
-                          setResume({
-                            title: course.title,
-                            type,
-                            url:
-                              type === "pdf"
-                                ? "/docs/sample.pdf"
-                                : "/videos/sample.mp4",
-                          });
-                          setResumeOpen(true);
-                        }}
                       >
                         {isCompleted ? "Resume Materi" : "Lanjutkan"}
                       </Button>
+                    </Link>
                     </Group>
                   </Group>
                 </Stack>

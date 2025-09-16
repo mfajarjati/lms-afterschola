@@ -29,6 +29,7 @@ import {
   IconTag,
 } from "@tabler/icons-react";
 import { dummyDiscussions } from "../../../data/learning";
+import Link from "next/link";
 
 export default function UserDiscussionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -230,15 +231,19 @@ export default function UserDiscussionsPage() {
                       <Text size="sm">{discussion.likes}</Text>
                     </Group>
                     <Group gap="xs">
-                      <ActionIcon variant="subtle" color="blue">
-                        <IconMessageCircle size="1rem" />
-                      </ActionIcon>
+                      <Link href={`/user/discussions/discuss-detail`} passHref>
+                        <ActionIcon variant="subtle" color="blue">
+                          <IconMessageCircle size="1rem" />
+                        </ActionIcon>
+                      </Link>
                       <Text size="sm">{discussion.comments.length}</Text>
                     </Group>
                   </Group>
-                  <Button variant="light" size="sm">
-                    Lihat Detail
-                  </Button>
+                  <Link href="/user/discussions/discuss-detail" passHref>
+                    <Button variant="light" size="sm">
+                      Lihat Detail
+                    </Button>
+                  </Link>
                 </Group>
 
                 {/* Latest Comments Preview */}
