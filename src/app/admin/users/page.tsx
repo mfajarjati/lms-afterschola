@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Container,
   Title,
@@ -13,7 +14,9 @@ import {
   Button,
   Modal,
   TextInput,
+  Select,
 } from "@mantine/core";
+import { DateInput } from "@mantine/dates";
 import {
   IconPlus,
   IconEye,
@@ -21,21 +24,53 @@ import {
   IconTrash,
   IconMail,
   IconPhone,
+  IconSearch,
+  IconDownload,
 } from "@tabler/icons-react";
 import { dummyUsers } from "../../../data/users";
-import { useState } from "react";
 import type { User } from "../../../types";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>(dummyUsers);
+
   const [viewUser, setViewUser] = useState<User | null>(null);
   const [editUser, setEditUser] = useState<User | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [deleteUser, setDeleteUser] = useState<User | null>(null);
 
+  // 🔎 Filter states
+  const [q, setQ] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [dateFilter, setDateFilter] = useState<Date | null>(null);
+
+  // 🔎 Filtering logic
+  const filteredUsers = users.filter((u) => {
+    const matchQ =
+      !q ||
+      u.fullName.toLowerCase().includes(q.toLowerCase()) ||
+      u.username.toLowerCase().includes(q.toLowerCase()) ||
+      u.email.toLowerCase().includes(q.toLowerCase());
+
+    const matchRole = !roleFilter || u.role === roleFilter;
+    const matchStatus =
+      !statusFilter ||
+      (statusFilter === "active" && u.status === "active") ||
+      (statusFilter === "inactive" && u.status === "inactive");
+
+    const matchDate =
+  !dateFilter ||
+  (dateFilter instanceof Date &&
+    u.createdAt.toDateString() === dateFilter.toDateString());
+
+
+    return matchQ && matchRole && matchStatus && matchDate;
+  });
+
   return (
     <Container size="xl">
       <Stack gap="xl">
+        {/* Header */}
         <Group justify="space-between">
           <div>
             <Title order={1} mb="md">
@@ -54,22 +89,97 @@ export default function AdminUsersPage() {
           </Button>
         </Group>
 
+        {/* 🔎 Filter Bar */}
+        <Group mb="md" grow>
+          <TextInput
+            placeholder="Cari nama / username / email..."
+            leftSection={<IconSearch size={16} />}
+            value={q}
+            onChange={(e) => setQ(e.currentTarget.value)}
+          />
+          <Select
+            placeholder="Role"
+            data={[
+              { value: "admin", label: "Admin" },
+              { value: "instructor", label: "Instruktur" },
+              { value: "user", label: "Siswa" },
+            ]}
+            value={roleFilter}
+            onChange={setRoleFilter}
+            clearable
+          />
+          <Select
+            placeholder="Status"
+            data={[
+              { value: "active", label: "Aktif" },
+              { value: "inactive", label: "Nonaktif" },
+            ]}
+            value={statusFilter}
+            onChange={setStatusFilter}
+            clearable
+          />
+          <DateInput
+            placeholder="Tanggal bergabung"
+            value={dateFilter}
+            onChange={setDateFilter}
+            clearable
+          />
+          <Button
+            leftSection={<IconDownload size={16} />}
+            variant="light"
+            onClick={() => {
+              const csv = users
+                .map(
+                  (u) =>
+                    `${u.fullName},${u.username},${u.email},${u.role},${u.level},${u.points},${u.balance},${u.createdAt.toLocaleDateString("id-ID")}`
+                )
+                .join("\n");
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = "users.csv";
+              a.click();
+            }}
+          >
+            Export
+          </Button>
+        </Group>
+
+        {/* Table User */}
         <Card padding="lg" radius="md">
-          <Table>
+          <Table
+            withTableBorder
+            withColumnBorders
+            horizontalSpacing="md"
+            verticalSpacing="sm"
+          >
             <Table.Thead>
-              <Table.Tr>
-                <Table.Th>User</Table.Th>
-                <Table.Th>Kontak</Table.Th>
-                <Table.Th>Role</Table.Th>
-                <Table.Th>Level & Poin</Table.Th>
-                <Table.Th>Saldo</Table.Th>
-                <Table.Th>Bergabung</Table.Th>
-                <Table.Th>Aksi</Table.Th>
+              <Table.Tr style={{ backgroundColor: "#1E386A" }}>
+                <Table.Th style={{ color: "white" }}>User</Table.Th>
+                <Table.Th style={{ color: "white" }}>Kontak</Table.Th>
+                <Table.Th style={{ color: "white" }}>Role</Table.Th>
+                <Table.Th style={{ color: "white" }}>Level & Poin</Table.Th>
+                <Table.Th
+                  style={{ color: "white", textAlign: "right" }}
+                >
+                  Saldo
+                </Table.Th>
+                <Table.Th style={{ color: "white" }}>Bergabung</Table.Th>
+                <Table.Th style={{ color: "white" }}>Aksi</Table.Th>
               </Table.Tr>
             </Table.Thead>
+
             <Table.Tbody>
-              {users.map((user) => (
-                <Table.Tr key={user.id}>
+              {filteredUsers.map((user, index) => (
+                <Table.Tr
+                  key={user.id}
+                  style={{
+                    backgroundColor:
+                      index % 2 === 0 ? "#d3d8e2ff" : "#ffff",
+                  }}
+                >
+                  {/* User */}
                   <Table.Td>
                     <Group>
                       <div>
@@ -80,6 +190,8 @@ export default function AdminUsersPage() {
                       </div>
                     </Group>
                   </Table.Td>
+
+                  {/* Kontak */}
                   <Table.Td>
                     <Stack gap={4}>
                       <Group gap="xs">
@@ -94,6 +206,8 @@ export default function AdminUsersPage() {
                       )}
                     </Stack>
                   </Table.Td>
+
+                  {/* Role */}
                   <Table.Td>
                     <Badge
                       color={
@@ -112,6 +226,8 @@ export default function AdminUsersPage() {
                         : "Siswa"}
                     </Badge>
                   </Table.Td>
+
+                  {/* Level & Poin */}
                   <Table.Td>
                     <Stack gap={4}>
                       <Text size="sm">Level {user.level}</Text>
@@ -120,16 +236,22 @@ export default function AdminUsersPage() {
                       </Text>
                     </Stack>
                   </Table.Td>
-                  <Table.Td>
+
+                  {/* Saldo */}
+                  <Table.Td style={{ textAlign: "right" }}>
                     <Text size="sm" fw={600} c="green">
                       Rp {user.balance.toLocaleString()}
                     </Text>
                   </Table.Td>
+
+                  {/* Bergabung */}
                   <Table.Td>
                     <Text size="sm">
                       {user.createdAt.toLocaleDateString("id-ID")}
                     </Text>
                   </Table.Td>
+
+                  {/* Aksi */}
                   <Table.Td>
                     <Group gap="xs">
                       <ActionIcon
@@ -161,7 +283,7 @@ export default function AdminUsersPage() {
           </Table>
         </Card>
 
-        {/* Modal: Lihat */}
+       {/* Modal: Lihat */}
         <Modal
           opened={!!viewUser}
           onClose={() => setViewUser(null)}

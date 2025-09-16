@@ -99,6 +99,7 @@ export default function AdminEarningsPage() {
       <Stack gap="lg">
         <Title order={2}>Keuangan</Title>
 
+        {/* ===== SUMMARY CARDS ===== */}
         <Grid gutter="lg">
           <Grid.Col span={{ base: 12, md: 3 }}>
             <Card padding="md" radius="md">
@@ -171,6 +172,7 @@ export default function AdminEarningsPage() {
           </Grid.Col>
         </Grid>
 
+        {/* ===== TRANSAKSI ===== */}
         <Paper p="md" radius="md" withBorder>
           <Group justify="space-between" align="center" mb="md">
             <Title order={3}>Transaksi</Title>
@@ -183,6 +185,7 @@ export default function AdminEarningsPage() {
             </Button>
           </Group>
 
+          {/* FILTER */}
           <Grid gutter="md" mb="md">
             <Grid.Col span={{ base: 12, md: 6 }}>
               <TextInput
@@ -211,22 +214,30 @@ export default function AdminEarningsPage() {
             </Grid.Col>
           </Grid>
 
-          <Table striped highlightOnHover withTableBorder withColumnBorders>
+          {/* TABLE TRANSAKSI */}
+          <Table withTableBorder withColumnBorders>
             <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Tanggal</Table.Th>
-                <Table.Th>Transaksi</Table.Th>
-                <Table.Th>User</Table.Th>
-                <Table.Th>Kursus</Table.Th>
-                <Table.Th>Metode</Table.Th>
-                <Table.Th>Status</Table.Th>
-                <Table.Th align="right">Jumlah</Table.Th>
-                <Table.Th>Aksi</Table.Th>
+              <Table.Tr style={{ backgroundColor: "#1E386A" }}>
+                <Table.Th style={{ color: "white" }}>Tanggal</Table.Th>
+                <Table.Th style={{ color: "white" }}>Transaksi</Table.Th>
+                <Table.Th style={{ color: "white" }}>User</Table.Th>
+                <Table.Th style={{ color: "white" }}>Kursus</Table.Th>
+                <Table.Th style={{ color: "white" }}>Metode</Table.Th>
+                <Table.Th style={{ color: "white" }}>Status</Table.Th>
+                <Table.Th style={{ color: "white" }} align="right">
+                  Jumlah
+                </Table.Th>
+                <Table.Th style={{ color: "white" }}>Aksi</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {filtered.map((t) => (
-                <Table.Tr key={t.id}>
+              {filtered.map((t, idx) => (
+                <Table.Tr
+                  key={t.id}
+                  style={{
+                    backgroundColor: idx % 2 === 0 ? "#D3D8E2" : "#FFFFFF",
+                  }}
+                >
                   <Table.Td>
                     {new Date(t.date).toLocaleString("id-ID")}
                   </Table.Td>
@@ -275,25 +286,33 @@ export default function AdminEarningsPage() {
           </Table>
         </Paper>
 
+        {/* ===== PAYOUT ===== */}
         <Paper p="md" radius="md" withBorder>
           <Group justify="space-between" mb="md">
             <Title order={3}>Payout Instruktur</Title>
           </Group>
 
-          <Table striped highlightOnHover withTableBorder withColumnBorders>
+          <Table withTableBorder withColumnBorders>
             <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Tanggal</Table.Th>
-                <Table.Th>ID</Table.Th>
-                <Table.Th>Instruktur</Table.Th>
-                <Table.Th>Status</Table.Th>
-                <Table.Th align="right">Jumlah</Table.Th>
-                <Table.Th>Aksi</Table.Th>
+              <Table.Tr style={{ backgroundColor: "#1E386A" }}>
+                <Table.Th style={{ color: "white" }}>Tanggal</Table.Th>
+                <Table.Th style={{ color: "white" }}>ID</Table.Th>
+                <Table.Th style={{ color: "white" }}>Instruktur</Table.Th>
+                <Table.Th style={{ color: "white" }}>Status</Table.Th>
+                <Table.Th style={{ color: "white" }} align="right">
+                  Jumlah
+                </Table.Th>
+                <Table.Th style={{ color: "white" }}>Aksi</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {payouts.map((p) => (
-                <Table.Tr key={p.id}>
+              {payouts.map((p, idx) => (
+                <Table.Tr
+                  key={p.id}
+                  style={{
+                    backgroundColor: idx % 2 === 0 ? "#D3D8E2" : "#FFFFFF",
+                  }}
+                >
                   <Table.Td>
                     {new Date(p.date).toLocaleDateString("id-ID")}
                   </Table.Td>
@@ -325,7 +344,7 @@ export default function AdminEarningsPage() {
           </Table>
         </Paper>
 
-        {/* Modal LIHAT */}
+        {/* ===== MODAL LIHAT ===== */}
         <Modal
           opened={!!viewItem}
           onClose={() => setViewItem(null)}
@@ -366,7 +385,7 @@ export default function AdminEarningsPage() {
           )}
         </Modal>
 
-        {/* Modal EDIT */}
+        {/* ===== MODAL EDIT ===== */}
         <Modal
           opened={!!editItem}
           onClose={() => setEditItem(null)}
@@ -384,7 +403,7 @@ export default function AdminEarningsPage() {
           )}
         </Modal>
 
-        {/* Modal TAMBAH */}
+        {/* ===== MODAL TAMBAH ===== */}
         <Modal
           opened={addOpen}
           onClose={() => setAddOpen(false)}
@@ -403,6 +422,7 @@ export default function AdminEarningsPage() {
   );
 }
 
+/* ========= FORMS ========= */
 function EditTransactionForm({
   initial,
   onSubmit,

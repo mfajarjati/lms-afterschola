@@ -192,7 +192,7 @@ export function DashboardLayout({
       header={{ height: 70 }}
       padding="md"
     >
-      <AppShell.Header withBorder>
+      <AppShell.Header bg={"var(--gradient-accent)"}>
         <Group h="100%" px="md" justify="space-between">
           <Group>
             {/* Mobile burger */}
@@ -208,7 +208,7 @@ export function DashboardLayout({
               style={{ display: "flex", alignItems: "center" }}
             >
               <Image
-                src="/logo-text.png"
+                src="/logo-text2.png"
                 alt="Afterschola"
                 width={140}
                 height={28}
